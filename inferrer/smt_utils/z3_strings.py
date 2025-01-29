@@ -1,114 +1,11 @@
 from z3 import *
 import z3
 import sre_parse, sre_constants
-
-
-def regex_to_z3_re(pattern: str) -> ReRef:
-    """
-    Convert a regular expression pattern to a Z3 regular expression.
-    Supports basic operations: concatenation (.), alternation (|),
-    character ranges ([a-z]), Kleene star (*), and parentheses for grouping ().
-
-    Args:
-        pattern: String containing the regular expression pattern
-
-    Returns:
-        Z3 regular expression
-
-    Raises:
-        ValueError: If the pattern contains syntax errors or mismatched parentheses
-    """
-
-    def parse_char_range(range_str):
-        # Handle character range like [a-z]
-        start, end = range_str[1:-1].split('-')
-        return Union([Re(StringVal(chr(i))) for i in range(ord(start), ord(end) + 1)])
-
-    def find_matching_parenthesis(pattern, start_pos):
-        """Find the position of the matching closing parenthesis."""
-        count = 1
-        pos = start_pos
-        while pos < len(pattern) and count > 0:
-            if pattern[pos] == '(':
-                count += 1
-            elif pattern[pos] == ')':
-                count -= 1
-            pos += 1
-
-        if count > 0:
-            raise ValueError("Mismatched parentheses")
-        return pos - 1
-
-    def parse_regex(pattern, pos=0, end=None):
-        if end is None:
-            end = len(pattern)
-
-        terms = []
-        current_term = []
-
-        while pos < end:
-            char = pattern[pos]
-
-            if char == '(':
-                # Handle nested expression
-                closing_pos = find_matching_parenthesis(pattern, pos + 1)
-                nested_term = parse_regex(pattern, pos + 1, closing_pos)
-                current_term.append(nested_term)
-                pos = closing_pos + 1
-            elif char == ')':
-                raise ValueError("Unexpected closing parenthesis")
-            elif char == '|':
-                # Handle alternation
-                if current_term:
-                    terms.append(make_concat(current_term))
-                    current_term = []
-                pos += 1
-            elif char == '[':
-                # Find the closing bracket
-                end_pos = pattern.find(']', pos)
-                if end_pos == -1:
-                    raise ValueError("Unclosed character range")
-                range_term = parse_char_range(pattern[pos:end_pos + 1])
-                current_term.append(range_term)
-                pos = end_pos + 1
-            elif char == '*':
-                # Handle Kleene star
-                if not current_term:
-                    raise ValueError("Invalid Kleene star position")
-                last_term = current_term.pop()
-                current_term.append(Star(last_term))
-                pos += 1
-            else:
-                # Handle literal character
-                current_term.append(Re(StringVal(char)))
-                pos += 1
-
-        if current_term:
-            terms.append(make_concat(current_term))
-
-        # Combine all terms with union
-        if not terms:
-            raise ValueError("Empty regular expression")
-        elif len(terms) == 1:
-            return terms[0]
-        else:
-            return Union(terms)
-
-    def make_concat(terms):
-        if len(terms) == 1:
-            return terms[0]
-        return Concat(terms)
-
-    return parse_regex(pattern)
-
 def check_raw_regex_equivalence(reg1: str, reg2: str):
     reg1_ast = sre_parse.parse(reg1)
     reg2_ast = sre_parse.parse(reg2)
     reg1_symbolic = regex_to_z3_expr(reg1_ast)
     reg2_symbolic = regex_to_z3_expr(reg2_ast)
-
-    # reg1_symbolic = regex_to_z3_re(reg1)
-    # reg2_symbolic = regex_to_z3_re(reg2)
     result = check_regex_equivalence(reg1_symbolic, reg2_symbolic)
     return result
 
@@ -153,21 +50,15 @@ def check_regex_equivalence(reg1, reg2):
     solver = Solver()
 
     # Create regex for symmetric difference (R1\R2 ∪ R2\R1)
-    # This captures strings that are in one regex but not the other
     symmetric_diff = Union(
-        Diff(reg1, reg2),  # Strings in reg1 but not in reg2
-        Diff(reg2, reg1)  # Strings in reg2 but not in reg1
+        Diff(reg1, reg2),
+        Diff(reg2, reg1)
     )
-
-    # Check if there exists a string in the symmetric difference
     solver.add(InRe(s, symmetric_diff))
-
     if solver.check() == sat:
-        # Found a witness showing the regexes are not equivalent
         model = solver.model()
         return False, model[s].as_string()
     else:
-        # No witness found, regexes are equivalent
         return True, None
 # Translates a specific regex construct into its Z3 equivalent.
 def regex_construct_to_z3_expr(regex_construct) -> z3.ReRef:
