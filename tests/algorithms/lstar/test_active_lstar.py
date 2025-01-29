@@ -495,7 +495,8 @@ class TestActiveLSTARSMT(unittest.TestCase):
         expected_dfa.add_transition(q0, q0, 'a')
         expected_dfa.accept_states.add(q0)
 
-        teacher = oracle.ActiveOracle(expected_dfa)
+        # teacher = oracle.ActiveOracle(expected_dfa)
+        teacher = oracle.active_smt_oracle.ActiveSMTOracle(expected_dfa)
         lstar = algorithms.LSTAR({'a'}, teacher)
 
         dfa = lstar.learn()
@@ -521,7 +522,8 @@ class TestActiveLSTARSMT(unittest.TestCase):
 
         expected_dfa.accept_states.add(q1)
 
-        teacher = oracle.ActiveOracle(expected_dfa)
+        # teacher = oracle.ActiveOracle(expected_dfa)
+        teacher = oracle.active_smt_oracle.ActiveSMTOracle(expected_dfa)
         lstar = algorithms.LSTAR({'a'}, teacher)
         dfa = lstar.learn()
 
@@ -542,7 +544,8 @@ class TestActiveLSTARSMT(unittest.TestCase):
 
         expected_dfa.accept_states.add(q1)
 
-        teacher = oracle.ActiveOracle(expected_dfa)
+        # teacher = oracle.ActiveOracle(expected_dfa)
+        teacher = oracle.active_smt_oracle.ActiveSMTOracle(expected_dfa)
         lstar = algorithms.LSTAR({'a', 'b'}, teacher)
 
         dfa = lstar.learn()
@@ -566,7 +569,8 @@ class TestActiveLSTARSMT(unittest.TestCase):
         expected_dfa.add_transition(q1, q0, 'a')
         expected_dfa.accept_states.add(q1)
 
-        teacher = oracle.ActiveOracle(expected_dfa)
+        # teacher = oracle.ActiveOracle(expected_dfa)
+        teacher = oracle.active_smt_oracle.ActiveSMTOracle(expected_dfa)
         lstar = algorithms.LSTAR({'a'}, teacher)
         dfa = lstar.learn()
 
@@ -603,7 +607,8 @@ class TestActiveLSTARSMT(unittest.TestCase):
 
         expected_dfa.accept_states.add(q1)
 
-        teacher = oracle.ActiveOracle(expected_dfa)
+        # teacher = oracle.ActiveOracle(expected_dfa)
+        teacher = oracle.active_smt_oracle.ActiveSMTOracle(expected_dfa)
         lstar = algorithms.LSTAR({'0', '1'}, teacher)
         dfa = lstar.learn()
 
@@ -647,7 +652,8 @@ class TestActiveLSTARSMT(unittest.TestCase):
 
         expected_dfa.accept_states.add(q4)
 
-        teacher = oracle.ActiveOracle(expected_dfa)
+        # teacher = oracle.ActiveOracle(expected_dfa)
+        teacher = oracle.active_smt_oracle.ActiveSMTOracle(expected_dfa)
         lstar = algorithms.LSTAR({'0', '1'}, teacher)
         dfa = lstar.learn()
 
@@ -694,7 +700,8 @@ class TestActiveLSTARSMT(unittest.TestCase):
 
         expected_dfa.accept_states.add(q1)
 
-        teacher = oracle.ActiveOracle(expected_dfa)
+        # teacher = oracle.ActiveOracle(expected_dfa)
+        teacher = oracle.active_smt_oracle.ActiveSMTOracle(expected_dfa)
 
         lstar = algorithms.LSTAR({'a', 'b'}, teacher)
         dfa = lstar.learn()
@@ -722,7 +729,8 @@ class TestActiveLSTARSMT(unittest.TestCase):
 
         expected_dfa.accept_states.add(q0)
 
-        teacher = oracle.ActiveOracle(expected_dfa)
+        # teacher = oracle.ActiveOracle(expected_dfa)
+        teacher = oracle.active_smt_oracle.ActiveSMTOracle(expected_dfa)
         lstar = algorithms.LSTAR({'a', 'b', 'c'}, teacher)
         dfa = lstar.learn()
 
@@ -758,7 +766,8 @@ class TestActiveLSTARSMT(unittest.TestCase):
 
         expected_dfa.accept_states.update({q1, q3})
 
-        teacher = oracle.ActiveOracle(expected_dfa)
+        # teacher = oracle.ActiveOracle(expected_dfa)
+        teacher = oracle.active_smt_oracle.ActiveSMTOracle(expected_dfa)
         lstar = algorithms.LSTAR({'a', 'b'}, teacher)
 
         dfa = lstar.learn()
@@ -815,7 +824,8 @@ class TestActiveLSTARSMT(unittest.TestCase):
 
         expected_dfa.accept_states.add(q2)
 
-        teacher = oracle.ActiveOracle(expected_dfa)
+        # teacher = oracle.ActiveOracle(expected_dfa)
+        teacher = oracle.active_smt_oracle.ActiveSMTOracle(expected_dfa)
         lstar = algorithms.LSTAR({'a', 'b'}, teacher)
 
         dfa = lstar.learn()
@@ -880,7 +890,8 @@ class TestActiveLSTARSMT(unittest.TestCase):
 
         expected_dfa.accept_states.add(q7)
 
-        teacher = oracle.ActiveOracle(expected_dfa)
+        # teacher = oracle.ActiveOracle(expected_dfa)
+        teacher = oracle.active_smt_oracle.ActiveSMTOracle(expected_dfa)
         lstar = algorithms.LSTAR({'#', '1', 'a'}, teacher)
 
         dfa = lstar.learn()

@@ -101,7 +101,7 @@ def regex_to_z3_re(pattern: str) -> ReRef:
 
     return parse_regex(pattern)
 
-def check_raw_regex_equivalence(solver, reg1: str, reg2: str):
+def check_raw_regex_equivalence(reg1: str, reg2: str):
     reg1_ast = sre_parse.parse(reg1)
     reg2_ast = sre_parse.parse(reg2)
     reg1_symbolic = regex_to_z3_expr(reg1_ast)
@@ -109,44 +109,65 @@ def check_raw_regex_equivalence(solver, reg1: str, reg2: str):
 
     # reg1_symbolic = regex_to_z3_re(reg1)
     # reg2_symbolic = regex_to_z3_re(reg2)
-    result = check_regex_equivalence(solver, reg1_symbolic, reg2_symbolic)
+    result = check_regex_equivalence(reg1_symbolic, reg2_symbolic)
     return result
 
 
-def check_regex_equivalence(solver, reg1: ReRef, reg2: ReRef):
-    """
-    Check if two regular expressions are equivalent.
-    Returns (True, None) if they are equivalent,
-    otherwise returns (False, s) where s is a distinguishing string.
-
-    Args:
-        solver: Z3 solver instance
-        reg1: First regular expression as Z3 ReRef
-        reg2: Second regular expression as Z3 ReRef
-
-    Returns:
-        tuple[bool, str | None]: (is_equivalent, distinguishing_string)
-    """
-    # Create a string variable
+# def check_regex_equivalence(solver, reg1: ReRef, reg2: ReRef):
+#     """
+#     Check if two regular expressions are equivalent.
+#     Returns (True, None) if they are equivalent,
+#     otherwise returns (False, s) where s is a distinguishing string.
+#
+#     Args:
+#         solver: Z3 solver instance
+#         reg1: First regular expression as Z3 ReRef
+#         reg2: Second regular expression as Z3 ReRef
+#
+#     Returns:
+#         tuple[bool, str | None]: (is_equivalent, distinguishing_string)
+#     """
+#     # Create a string variable
+#     s = String('s')
+#
+#     # Check for a string that belongs to one regex but not the other
+#     solver.push()
+#     solver.add(
+#         Or(
+#             And(InRe(s, reg1), Not(InRe(s, reg2))),
+#             And(InRe(s, reg2), Not(InRe(s, reg1)))
+#         )
+#     )
+#
+#     if solver.check() == sat:
+#         # Get the distinguishing string
+#         model = solver.model()
+#         distinguishing_string = model[s].as_string()
+#         solver.pop()
+#         return False, distinguishing_string
+#     else:
+#         solver.pop()
+#         return True, None
+def check_regex_equivalence(reg1, reg2):
     s = String('s')
+    solver = Solver()
 
-    # Check for a string that belongs to one regex but not the other
-    solver.push()
-    solver.add(
-        Or(
-            And(InRe(s, reg1), Not(InRe(s, reg2))),
-            And(InRe(s, reg2), Not(InRe(s, reg1)))
-        )
+    # Create regex for symmetric difference (R1\R2 ∪ R2\R1)
+    # This captures strings that are in one regex but not the other
+    symmetric_diff = Union(
+        Diff(reg1, reg2),  # Strings in reg1 but not in reg2
+        Diff(reg2, reg1)  # Strings in reg2 but not in reg1
     )
 
+    # Check if there exists a string in the symmetric difference
+    solver.add(InRe(s, symmetric_diff))
+
     if solver.check() == sat:
-        # Get the distinguishing string
+        # Found a witness showing the regexes are not equivalent
         model = solver.model()
-        distinguishing_string = model[s].as_string()
-        solver.pop()
-        return False, distinguishing_string
+        return False, model[s].as_string()
     else:
-        solver.pop()
+        # No witness found, regexes are equivalent
         return True, None
 # Translates a specific regex construct into its Z3 equivalent.
 def regex_construct_to_z3_expr(regex_construct) -> z3.ReRef:
